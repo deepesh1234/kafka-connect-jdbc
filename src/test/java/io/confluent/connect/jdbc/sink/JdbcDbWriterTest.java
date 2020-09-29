@@ -99,7 +99,7 @@ public class JdbcDbWriterTest {
     writer.write(Collections.singleton(new SinkRecord(topic, 0, keySchema, 1L, valueSchema1,
                                                       valueStruct1, 0)));
 
-    TableDefinition metadata = dialect.describeTable(writer.cachedConnectionProvider.getConnection(),
+    TableDefinition metadata = dialect.describeTable(writer.dataSource.getConnection(),
                                                      tableId);
     assertTrue(metadata.definitionForColumn("id").isPrimaryKey());
     for (Field field : valueSchema1.fields()) {

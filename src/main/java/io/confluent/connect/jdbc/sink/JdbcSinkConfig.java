@@ -100,6 +100,12 @@ public class JdbcSinkConfig extends AbstractConfig {
       "The maximum number of times to retry on errors before failing the task.";
   private static final String MAX_RETRIES_DISPLAY = "Maximum Retries";
 
+  public static final String MAX_POOL_SIZE_CONFIG = "max.pool.size";
+  private static final int MAX_POOL_SIZE_DEFAULT = 10;
+  private static final String MAX_POOL_SIZE_DOC =
+      "The maximum number of pool of connections.";
+  private static final String MAX_POOL_SIZE_DISPLAY = "Maximum Pool of Connections";
+
   public static final String RETRY_BACKOFF_MS = "retry.backoff.ms";
   private static final int RETRY_BACKOFF_MS_DEFAULT = 3000;
   private static final String RETRY_BACKOFF_MS_DOC =
@@ -313,6 +319,17 @@ public class JdbcSinkConfig extends AbstractConfig {
             2,
             ConfigDef.Width.SHORT,
             BATCH_SIZE_DISPLAY
+        )
+        .define(
+            MAX_POOL_SIZE_CONFIG,
+            ConfigDef.Type.INT,
+            MAX_POOL_SIZE_DEFAULT,
+            NON_NEGATIVE_INT_VALIDATOR,
+            ConfigDef.Importance.MEDIUM,
+            MAX_POOL_SIZE_DOC, WRITES_GROUP,
+            2,
+            ConfigDef.Width.SHORT,
+            MAX_POOL_SIZE_DISPLAY
         )
         .define(
             DELETE_ENABLED,
