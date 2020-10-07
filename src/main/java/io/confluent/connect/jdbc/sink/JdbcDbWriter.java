@@ -25,10 +25,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.confluent.connect.jdbc.dialect.DatabaseDialect;
-import io.confluent.connect.jdbc.util.CachedConnectionProvider;
 import io.confluent.connect.jdbc.util.TableId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.sql.DataSource;
 
 public class JdbcDbWriter {
   private static final Logger log = LoggerFactory.getLogger(JdbcDbWriter.class);
@@ -36,24 +37,17 @@ public class JdbcDbWriter {
   private final JdbcSinkConfig config;
   private final DatabaseDialect dbDialect;
   private final DbStructure dbStructure;
-  final CachedConnectionProvider cachedConnectionProvider;
+  protected DataSource dataSource;
 
   JdbcDbWriter(final JdbcSinkConfig config, DatabaseDialect dbDialect, DbStructure dbStructure) {
     this.config = config;
     this.dbDialect = dbDialect;
     this.dbStructure = dbStructure;
-
-    this.cachedConnectionProvider = new CachedConnectionProvider(this.dbDialect) {
-      @Override
-      protected void onConnect(Connection connection) throws SQLException {
-        log.info("JdbcDbWriter Connected");
-        connection.setAutoCommit(false);
-      }
-    };
+    this.dataSource = PoolOfPools.get(config);
   }
 
   void write(final Collection<SinkRecord> records) throws SQLException {
-    final Connection connection = cachedConnectionProvider.getConnection();
+    final Connection connection = this.dataSource.getConnection();
 
     final Map<TableId, BufferedRecords> bufferByTable = new HashMap<>();
     for (SinkRecord record : records) {
@@ -75,10 +69,6 @@ public class JdbcDbWriter {
     connection.commit();
   }
 
-  void closeQuietly() {
-    cachedConnectionProvider.close();
-  }
-
   TableId destinationTable(String topic) {
     final String tableName = config.tableNameFormat.replace("${topic}", topic);
     if (tableName.isEmpty()) {
@@ -89,5 +79,8 @@ public class JdbcDbWriter {
       ));
     }
     return dbDialect.parseTableIdentifier(tableName);
+  }
+
+  public void closeQuietly() {
   }
 }
