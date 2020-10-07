@@ -80,4 +80,7 @@ public class JdbcDbWriter {
     }
     return dbDialect.parseTableIdentifier(tableName);
   }
+
+  public void closeQuietly() {
+  }
 }
